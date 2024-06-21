@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 
 sys.path.append('dashboard')
-from dashboard import pages as pg
+import pages as pg
 
 st.set_page_config(page_title="Data Visualization Dashboard")
 
