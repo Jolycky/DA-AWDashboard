@@ -9,11 +9,11 @@ import os
 load_dotenv()
 
 # Database connection details
-DB_HOST = os.getenv('DB_HOST')
+DB_HOST = st.secrets['DB_HOST']
 DB_PORT = 3306
-DB_DATABASE = os.getenv('DB_DATABASE')
-DB_USER = os.getenv('DB_USER')
-DB_PASS = os.getenv('DB_PASS')
+DB_DATABASE = st.secrets['DB_DATABASE']
+DB_USER = st.secrets['DB_USER']
+DB_PASS = st.secrets['DB_PASS']
 
 # Create the database connection string
 db_url = f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}'
