@@ -1,5 +1,4 @@
 from sqlalchemy import create_engine
-import pymysql
 import pandas as pd
 import streamlit as st
 import plotly.express as px
