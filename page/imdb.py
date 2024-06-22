@@ -33,7 +33,7 @@ def comparison():
     tab1, tab2 = st.tabs(['Budget', 'Durasi(Menit)'])
     with tab1:
         budget = filtered.groupby('Year')['Budget'].sum().reset_index()
-        fig = px.bar(budget, x='Year', y='Budget', title='Budget per Year')
+        fig = px.line(budget, x='Year', y='Budget', title='Budget per Year')
         st.plotly_chart(fig)
         with st.expander("Analysis", expanded=False):
             total_budget = budget['Budget'].sum()
@@ -50,37 +50,45 @@ def comparison():
             # Interpretasi
             st.markdown('**Interpretasi Budget per Year**')
             st.write("""
-            Grafik batang menunjukkan distribusi budget per tahun dari dataset yang diberikan.
-            - **Total Budget:** Total budget dari semua tahun memberikan gambaran umum mengenai total pengeluaran dalam periode waktu tertentu.
-            - **Rata-rata Budget:** Rata-rata budget per tahun menunjukkan tren pengeluaran tahunan.
-            - **Tahun dengan Budget Tertinggi dan Terendah:** Menunjukkan tahun dengan pengeluaran terbesar dan terkecil, yang dapat membantu mengidentifikasi pola atau anomali dalam pengeluaran.
+            Grafik garis menunjukkan total budget per tahun dari dataset yang diberikan.
+            - Jika garis bergerak naik, ini menunjukkan total budget film meningkat dari tahun ke tahun.
+            - Jika garis bergerak turun, ini menunjukkan total budget film menurun dari tahun ke tahun.
+            - Jika garis bergerak datar, ini menunjukkan total budget film stabil dari tahun ke tahun.
+            - Puncak garis menunjukkan tahun dengan total budget tertinggi.
+            - Ujung garis menunjukkan tahun dengan total budget terendah.
             """)
+
     with tab2:
-        durasi = filtered.groupby('Rating')['Durasi(Menit)'].mean().reset_index()
-        fig = px.bar(durasi, x='Rating', y='Durasi(Menit)', title='Avarage Durasi(Menit) per Rating')
+        filtered['Short_Name'] = filtered['Name'].apply(lambda x: x if len(x) <= 15 else x[:12] + '...')
+        fig = px.bar(filtered, x='Short_Name', y=['Gross_US', 'Gross_World'], barmode='group',
+             title='Perbandingan Pendapatan AS & Kanada dengan Pendapatan Global',
+             labels={'value': 'Pendapatan', 'variable': 'Kategori', 'Short_Name': 'Film'})
+
+        # Update layout for better visualization
+        fig.update_layout(xaxis_tickangle=-45)
         st.plotly_chart(fig)
         with st.expander("Analysis", expanded=False):
-            avg_durasi = durasi['Durasi(Menit)'].mean()
-            max_durasi_rating = durasi.loc[durasi['Durasi(Menit)'].idxmax(), 'Rating']
-            min_durasi_rating = durasi.loc[durasi['Durasi(Menit)'].idxmin(), 'Rating']
-            
-            st.markdown('**Analisis Durasi(Menit)**')
-            st.write(f"Rata-rata durasi dari semua rating adalah {avg_durasi} menit.")
-            st.write(f"Rating dengan durasi tertinggi adalah **{max_durasi_rating}** dengan rata-rata durasi {durasi.loc[durasi['Durasi(Menit)'].idxmax(), 'Durasi(Menit)']} menit.")
-            st.write(f"Rating dengan durasi terendah adalah **{min_durasi_rating}** dengan rata-rata durasi {durasi.loc[durasi['Durasi(Menit)'].idxmin(), 'Durasi(Menit)']} menit.")
-
-            # Interpretasi
-            st.markdown('**Interpretasi Average Durasi(Menit) per Rating**')
+            st.markdown('**Interpretasi Perbandingan Pendapatan AS & Kanada dengan Pendapatan Global**')
             st.write("""
-            Grafik batang menunjukkan rata-rata durasi (menit) per rating dari dataset yang diberikan.
-            - **Rata-rata Durasi:** Menunjukkan berapa lama rata-rata durasi film berdasarkan ratingnya.
-            - **Rating dengan Durasi Tertinggi dan Terendah:** Mengidentifikasi rating yang memiliki durasi rata-rata tertinggi dan terendah, yang dapat memberikan wawasan tentang durasi film yang berkaitan dengan rating tertentu.
+            Grafik batang menunjukkan perbandingan pendapatan AS & Kanada dengan pendapatan global dari film-film yang dianalisis.
+            - Setiap batang mewakili pendapatan AS & Kanada dan pendapatan global dari film yang berbeda.
+            - Jika batang pendapatan AS & Kanada lebih tinggi dari batang pendapatan global, ini menunjukkan bahwa film tersebut mendapatkan pendapatan yang lebih tinggi di AS & Kanada daripada secara global.
+            - Jika batang pendapatan AS & Kanada lebih rendah dari batang pendapatan global, ini menunjukkan bahwa film tersebut mendapatkan pendapatan yang lebih tinggi secara global daripada di AS & Kanada.
+            - Jika batang pendapatan AS & Kanada dan batang pendapatan global sejajar, ini menunjukkan bahwa film tersebut mendapatkan pendapatan yang seimbang di AS & Kanada dan secara global.
+            - Grafik ini membantu dalam memahami perbandingan pendapatan AS & Kanada dan pendapatan global dari film-film yang dianalisis.
             """)
+
 def distribution():
     st.header('Distribution Data IMDB')
     tab1, tab2 = st.tabs(['Gross_World', 'Budget'])
     with tab1:
-        fig = px.histogram(filtered, x='Gross_World', title='Gross World Distribution')
+        fig = px.histogram(filtered, x='Gross_World', title='Gross World Distribution', nbins=20, histnorm='percent')
+        fig.update_layout(
+            xaxis_title='Gross World',
+            yaxis_title='Percentage',
+            showlegend=False
+        )
+        fig.update_traces(marker_color='#1f77b4')
         st.plotly_chart(fig)
         with st.expander("Analysis", expanded=False):
             total_gross = filtered['Gross_World'].sum()
@@ -106,7 +114,13 @@ def distribution():
             - Simetri histogram menunjukkan distribusi pendapatan global yang seimbang atau tidak.
             """)
     with tab2:
-        fig = px.histogram(filtered, x='Budget', title='Budget Distribution')
+        fig = px.histogram(filtered, x='Budget', title='Budget Distribution', nbins=20, histnorm='percent')
+        fig.update_layout(
+            xaxis_title='Budget',
+            yaxis_title='Percentage',
+            showlegend=False
+        )
+        fig.update_traces(marker_color='#1f77b4')
         st.plotly_chart(fig)
         with st.expander("Analysis", expanded=False):
             total_budget = filtered['Budget'].sum()
@@ -132,60 +146,64 @@ def distribution():
 
 def composition():
     st.header('Composition Data IMDB')
-    rating = filtered.groupby('Rating').agg({
-        'Rating': 'count'
-    })
-    rating = rating.rename(columns={'Rating': 'Total'}).reset_index()
-    fig = px.pie(rating, values='Total', names='Rating', title='Rating Composition')
-    st.plotly_chart(fig)
-    with st.expander("Analysis", expanded=False):
-        st.markdown('**Interpretasi Rating Composition**')
-        st.write("""
-        Grafik pie menunjukkan komposisi jumlah film berdasarkan rating yang ada di dataset.
-        - Setiap irisan pie mewakili proporsi dari jumlah film dengan rating tertentu.
-        - Grafik ini membantu dalam memahami distribusi dan dominasi rating tertentu di antara film-film yang dianalisis.
-        """)
+    tab1, tab2 = st.tabs(['Gross', 'Rating'])
+    with tab1:
+        filtered['Short_Name'] = filtered['Name'].apply(lambda x: x if len(x) <= 15 else x[:12] + '...')
+        fig = px.area(filtered, 
+                  x='Short_Name', 
+                  y=['Gross_World', 'Gross_US'], 
+                  title='Composition of Gross Data',
+                  labels={'Gross_World', 'Gross_US'},
+                  template='plotly_dark')
+    
+        fig.update_layout(
+            xaxis_title='Film',
+            yaxis_title='Pendapatan',
+            legend_title=None,
+            showlegend=True,
+        )
+
+        st.plotly_chart(fig)
+        with st.expander("Analysis", expanded=False):
+            st.markdown('**Interpretasi Komposisi Gross Data**')
+            st.write("""
+            Grafik area menunjukkan komposisi pendapatan film dari dataset yang diberikan.
+            - Setiap warna mewakili pendapatan global atau pendapatan AS & Kanada dari film yang berbeda.
+            - Grafik ini membantu dalam memahami bagaimana pendapatan global dan pendapatan AS & Kanada berubah sepanjang waktu.
+            """)
+    with tab2:
+        rating = filtered.groupby('Rating').agg({
+            'Rating': 'count'
+        })
+        rating = rating.rename(columns={'Rating': 'Total'}).reset_index()
+        fig = px.pie(rating, values='Total', names='Rating', title='Rating Composition')
+        st.plotly_chart(fig)
+        with st.expander("Analysis", expanded=False):
+            st.markdown('**Interpretasi Rating Composition**')
+            st.write("""
+            Grafik pie menunjukkan komposisi jumlah film berdasarkan rating yang ada di dataset.
+            - Setiap irisan pie mewakili proporsi dari jumlah film dengan rating tertentu.
+            - Grafik ini membantu dalam memahami distribusi dan dominasi rating tertentu di antara film-film yang dianalisis.
+            """)
 
 def relationship():
     st.header('Relationship Data IMDB')
-    tab1, tab2 = st.tabs(['Budget vs Gross_World', 'Rating vs Budget'])
-    with tab1:
-        budget_gross = filtered[['Budget', 'Gross_World']]
-        fig = px.scatter(budget_gross, x='Budget', y='Gross_World', title='Budget vs Gross')
-        max_gross = budget_gross['Gross_World'].idxmax()
-        min_gross = budget_gross['Gross_World'].idxmin()
-        fig.add_annotation(x=budget_gross.loc[max_gross, 'Budget'], y=budget_gross.loc[max_gross, 'Gross_World'], text="Max")
-        fig.add_annotation(x=budget_gross.loc[min_gross, 'Budget'], y=budget_gross.loc[min_gross, 'Gross_World'], text="Min")
-        st.plotly_chart(fig)
-        with st.expander("Analysis", expanded=False):
-            correlation = budget_gross['Budget'].corr(budget_gross['Gross_World'])
-            st.markdown('**Analisis Budget vs Gross World**')
-            st.write(f"Korelasi antara budget dan gross world adalah {correlation}.")
-            
-            # Interpretasi
-            st.markdown('**Interpretasi Budget vs Gross World**')
-            st.write("""
-            Grafik scatter menunjukkan hubungan antara budget dan gross world dari dataset yang diberikan.
-            - Korelasi positif menunjukkan bahwa semakin tinggi budget, semakin tinggi pula gross world film.
-            - Korelasi negatif menunjukkan bahwa semakin tinggi budget, semakin rendah gross world film.
-            - Korelasi nol menunjukkan tidak ada hubungan antara budget dan gross world film.
-            - Penambahan anotasi pada titik data tertinggi dan terendah membantu mengidentifikasi film dengan budget dan gross world tertinggi dan terendah.
-            """)
-
-    with tab2:
-        rating_budget = filtered[['Rating', 'Budget']]
-        fig = px.scatter(rating_budget, x='Budget', y='Rating', title='Rating vs Budget')
-        max_budget = rating_budget['Budget'].idxmax()
-        min_budget = rating_budget['Budget'].idxmin()
-        fig.add_annotation(x=rating_budget.loc[max_budget, 'Budget'], y=rating_budget.loc[max_budget, 'Rating'], text="Max")
-        fig.add_annotation(x=rating_budget.loc[min_budget, 'Budget'], y=rating_budget.loc[min_budget, 'Rating'], text="Min")
-        st.plotly_chart(fig)
+    fig = px.scatter(
+        filtered, 
+        x='Budget', 
+        y='Gross_World', 
+        color='Durasi(Menit)', 
+        size='Durasi(Menit)', 
+        hover_data=['Name', 'Year'],
+        labels={'Budget': 'Anggaran (Budget)', 'Gross_World': 'Pendapatan Global (Gross World)', 'Durasi(Menit)': 'Durasi Film (Menit)'},
+        title='Budget vs Gross World vs Durasi Film')
+    st.plotly_chart(fig)
 
 def show_imdb():
     st.title('IMDB Data Visualization Dashboard')
     filter_data()
     home()
-    distribution()
     composition()
     relationship()
     comparison()
+    distribution()
