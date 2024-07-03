@@ -1,5 +1,6 @@
 # DA-AWDashboard
 ## Adventure Works and IMDb Dashboard
+![Screenshot (2088)](https://github.com/Jolycky/DA-AWDashboard/assets/126927999/183e632b-473d-458b-8aae-82b9dd40b3d6)
 
 This repository contains a Streamlit dashboard for data visualization using Adventure Works and IMDb datasets. The dashboard allows users to explore and analyze data through interactive visualizations. It also includes functionality for scraping data from the IMDb website. https://da-awdashboard.streamlit.app/
 
